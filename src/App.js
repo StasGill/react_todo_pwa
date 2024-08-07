@@ -5,10 +5,19 @@ import "./App.css";
 import InstallPrompt from "./InstallPrompt";
 
 function App() {
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState(() => {
+    // Load saved todos from local storage
+    const savedTodos = localStorage.getItem("todos");
+    return savedTodos ? JSON.parse(savedTodos) : [];
+  });
   const [input, setInput] = useState("");
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [installPromptOpen, setInstallPromptOpen] = useState(false);
+
+  useEffect(() => {
+    // Save todos to local storage whenever they change
+    localStorage.setItem("todos", JSON.stringify(todos));
+  }, [todos]);
 
   useEffect(() => {
     window.addEventListener("beforeinstallprompt", (e) => {
@@ -20,8 +29,10 @@ function App() {
 
   const addTodo = (e) => {
     e.preventDefault();
-    setTodos([...todos, input]);
-    setInput("");
+    if (input.trim()) {
+      setTodos([...todos, input]);
+      setInput("");
+    }
   };
 
   const deleteTodo = (index) => {
@@ -65,7 +76,7 @@ function App() {
           {todos.map((todo, index) => (
             <li key={index}>
               {todo}
-              <button onClick={() => deleteTodo(index)}>X</button>
+              <button onClick={() => deleteTodo(index)}>Delete</button>
             </li>
           ))}
         </ul>
