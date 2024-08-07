@@ -1,15 +1,20 @@
+// src/App.js
+
 import React, { useState, useEffect } from "react";
 import "./App.css";
+import InstallPrompt from "./InstallPrompt";
 
 function App() {
   const [todos, setTodos] = useState([]);
   const [input, setInput] = useState("");
   const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [installPromptOpen, setInstallPromptOpen] = useState(false);
 
   useEffect(() => {
     window.addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
+      setInstallPromptOpen(true);
     });
   }, []);
 
@@ -24,7 +29,11 @@ function App() {
     setTodos(newTodos);
   };
 
-  const installApp = () => {
+  const handleInstallClose = () => {
+    setInstallPromptOpen(false);
+  };
+
+  const handleInstall = () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
       deferredPrompt.userChoice.then((choiceResult) => {
@@ -34,6 +43,7 @@ function App() {
           console.log("User dismissed the A2HS prompt");
         }
         setDeferredPrompt(null);
+        setInstallPromptOpen(false);
       });
     }
   };
@@ -41,7 +51,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>To-Do List</h1>
+        <h1>DoThat</h1>
         <form onSubmit={addTodo}>
           <input
             type="text"
@@ -55,11 +65,15 @@ function App() {
           {todos.map((todo, index) => (
             <li key={index}>
               {todo}
-              <button onClick={() => deleteTodo(index)}>Delete</button>
+              <button onClick={() => deleteTodo(index)}>X</button>
             </li>
           ))}
         </ul>
-        {deferredPrompt && <button onClick={installApp}>Install App</button>}
+        <InstallPrompt
+          open={installPromptOpen}
+          onClose={handleInstallClose}
+          onInstall={handleInstall}
+        />
       </header>
     </div>
   );
